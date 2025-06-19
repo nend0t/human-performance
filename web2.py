@@ -13,6 +13,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.cluster import AgglomerativeClustering
 from sklearn.mixture import GaussianMixture
+from scipy.cluster.hierarchy import dendrogram, linkage
 import io
 from io import BytesIO
 
@@ -105,6 +106,34 @@ if uploaded_file:
         pairplot_fig = sns.pairplot(sample_df)
         st.pyplot(pairplot_fig)
 
+        # 4. Dendrogram (Hanya untuk menu Clustering)
+        if menu == "Clustering":
+            st.markdown("<h4 style='color: #4F8BF9;'>🌳 Dendrogram Hierarki Clustering</h4>", unsafe_allow_html=True)
+            st.write("Dendrogram adalah diagram pohon yang digunakan untuk memvisualisasikan penggabungan data secara hierarkis. Diagram ini sangat berguna untuk mendapatkan gambaran awal mengenai kemungkinan jumlah cluster yang optimal dengan melihat jarak penggabungan antar-cluster.")
+            
+            try:
+                # Normalisasi data sangat penting untuk dendrogram agar skala tidak memengaruhi jarak
+                scaler_dendro = StandardScaler()
+                df_scaled_dendro = scaler_dendro.fit_transform(df)
+                
+                # Membuat linkage matrix menggunakan metode 'ward'
+                linked = linkage(df_scaled_dendro, method='ward')
+                
+                # Membuat plot dendrogram
+                fig_dendro, ax_dendro = plt.subplots(figsize=(15, 8))
+                dendrogram(linked,
+                           orientation='top',
+                           distance_sort='descending',
+                           show_leaf_counts=True,
+                           ax=ax_dendro)
+                ax_dendro.set_title('Dendrogram Hierarki Clustering', fontsize=16)
+                ax_dendro.set_xlabel('Indeks Data Point')
+                ax_dendro.set_ylabel('Jarak Euclidean (Ward)')
+                plt.tight_layout()
+                st.pyplot(fig_dendro)
+            except Exception as e:
+                st.error(f"Terjadi kesalahan saat membuat dendrogram: {e}")
+        
         # 4. Bar Plot Rata-rata Variabel berdasarkan Cluster (Jika ada kolom 'Cluster')
         if 'Cluster' in df.columns:
             st.markdown("<h4 style='color: #4F8BF9;'>📊 Rata-rata Variabel per Cluster</h4>", unsafe_allow_html=True)
